@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+import json
 import psycopg2
 
 class UltDebDb:
-    deb_name_ver = {
+    debian_name_ver = {
         "stretch": "9",
         "buster": "10",
         "bullseye": "11",
@@ -26,10 +27,10 @@ class UltDebDb:
             password="udd-mirror",
         )
 
-    def deb_packages(self):
+    def debian_packages(self):
         # Builds a string along the lines of:
         #    release='stretch' OR release='buster'
-        releases = " OR ".join([f"release='{key}'" for key in self.deb_name_ver.keys()])
+        releases = " OR ".join([f"release='{key}'" for key in self.debian_name_ver.keys()])
         architecture='amd64'
 
         cursor = self.conn.cursor()
@@ -39,11 +40,36 @@ class UltDebDb:
         """)
         results = cursor.fetchall()
         return [{
-            "operating_system": "Debian " + self.deb_name_ver[release],
+            "operating_system": "Debian " + self.debian_name_ver[release],
             "package": package,
             "version": version,
             } for (distribution, release, package, version) in results]
 
+    def ubuntu_packages(self):
+        # Builds a string along the lines of:
+        #    release='xenial' OR release='bionic' OR <... and so on>
+        releases = " OR ".join([f"release='{key}'" for key in self.ubuntu_name_ver.keys()])
+        architecture='amd64'
+
+        cursor = self.conn.cursor()
+        cursor.execute(f"""
+            SELECT distribution, release, package, version FROM ubuntu_packages
+            WHERE ({releases}) AND architecture='{architecture}'
+        """)
+        results = cursor.fetchall()
+        return [{
+            "operating_system": "Ubuntu " + self.ubuntu_name_ver[release],
+            "package": package,
+            "version": version,
+            } for (distribution, release, package, version) in results]
 
 udd = UltDebDb()
-print(udd.deb_packages())
+with open("data/debian.json", "w") as f:
+    print("Saving Debian data... ", end="")
+    json.dump(udd.debian_packages(), f)
+    print("Done!")
+
+with open("data/ubuntu.json", "w") as f:
+    print("Saving Ubuntu data... ", end="")
+    json.dump(udd.ubuntu_packages(), f)
+    print("Done!")
