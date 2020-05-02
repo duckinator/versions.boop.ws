@@ -4,11 +4,18 @@ import psycopg2
 
 class UltDebDb:
     deb_name_ver = {
-        "buster": "10",
         "stretch": "9",
+        "buster": "10",
+        "bullseye": "11",
+        "bookworm": "12",
     }
 
     ubuntu_name_ver = {
+        "xenial": "16.04 LTS",
+        "bionic": "18.04 LTS",
+        "eoan": "19.10",
+        "focal": "20.04 LTS",
+        "groovy": "20.10",
     }
 
     def __init__(self):
@@ -39,5 +46,4 @@ class UltDebDb:
 
 
 udd = UltDebDb()
-#for release in ['stretch', 'buster']:
 print(udd.deb_packages())
